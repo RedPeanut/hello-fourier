@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>index.html</title>
+
+<script src="./lib/p5.js"></script>
+<script src="./lib/numjs.min.js"></script>
+
+<script src="./Constants.js"></script>
+<script src="./Frame.js"></script>
+<script src="./Plot1.js"></script>
+<script src="./Container.js"></script>
+
+<script type="text/javascript">
+
+//let canvas;
+
+/* let width = 400;
+let height = 400; 
+
+//let xMin = -3*Math.PI, xMax = 3*Math.PI;
+let xMin = -2, xMax = 2;
+let yMin = -2, yMax = 2;
+
+// Tic mark intervals
+let xTicInt = 1.0;
+let yTicInt = 1.0;
+
+// Tic mark lengths. If too small on x-axis, a default value is used later.
+let xTicLen = (yMax - yMin) / 50;
+let yTicLen = (xMax - xMin) / 50;
+
+let xCalcInc = 0.05;
+
+let xScale = width / (xMax - xMin);
+let yScale = height / (yMax - yMin);
+
+let xOrigin = parseInt((0 - xMin) * xScale);
+let yOrigin = parseInt((0 - yMin) * yScale);
+*/
+
+/* let DEFAULT_FRAME_WIDTH = LOW_QUALITY_CAMERA_CONFIG["frame_width"];
+let DEFAULT_FRAME_HEIGHT = LOW_QUALITY_CAMERA_CONFIG["frame_height"];
+let DEFAULT_FRAME_RATE = LOW_QUALITY_CAMERA_CONFIG["frame_rate"];
+
+let width = DEFAULT_FRAME_WIDTH;
+let height = DEFAULT_FRAME_HEIGHT; */
+
+let objects = [], plots = [];
+let container;
+
+function setup() {
+  console.log("setup() is called...");
+
+  let frame = new Frame({
+    /* // medium size frame
+    "width": 1280,
+    "height": 720, */
+    // small size frame
+    "width": 800,
+    "height": 480,
+    "rate": 10,
+  });
+
+  createCanvas(frame.config.width, frame.config.height);
+  frameRate(frame.config.rate);
+
+  let signal_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "25%",
+    "padding": "10px 5px 5px 10px",
+    "position": UP,
+    "x": "0px", "y": "0px",
+    "drawBackgound": function() {},
+    "f": function(x) {
+
+      let f = function(x) {
+        let mod = x % 2;
+        if (0 <= mod && mod < 1) return 1;
+        else return 0;
+      };
+
+      let xVal, yVal;
+      this.points = [];
+      for (let x=0; x<=12; x+=0.01) {
+        xVal = this.getTheX(x);
+        yVal = this.getTheY(f(x));
+        this.points.unshift(createVector(xVal, yVal)); 
+      }
+      return points;
+    },
+    "drawShape": function() {},
+  };
+
+  let spectrum1_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "20%",
+    "padding": "10px 10px 5px 5px",
+    "position": UP,
+    "x": "400px", "y": 96*0+"px",
+    "drawBackgound": function() {},
+    "f": function(x) {},
+    "drawShape": function() {},
+  };
+
+  let spectrum2_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "20%",
+    "padding": "5px 10px 5px 5px",
+    "position": UP,
+    "x": "400px", "y": 96*1+"px",
+    "drawBackgound": function() {},
+    "f": function(x) {},
+    "drawShape": function() {},
+  };
+
+  let spectrum3_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "20%",
+    "padding": "5px 10px 5px 5px",
+    "position": UP,
+    "x": "400px", "y": 96*2+"px",
+    "drawBackgound": function() {},
+    "f": function(x) {},
+    "drawShape": function() {},
+  };
+
+  let spectrum4_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "20%",
+    "padding": "5px 10px 5px 5px",
+    "position": UP,
+    "x": "400px", "y": 96*3+"px",
+    "drawBackgound": function() {},
+    "f": function(x) {},
+    "drawShape": function() {},
+  };
+
+  let spectrum5_plot_config = {
+    "x_min": -1.5, "x_max": +12,
+    "y_min": -1, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "50%",
+    "height": "20%",
+    "padding": "5px 10px 10px 5px",
+    "position": UP,
+    "x": "400px", "y": 96*4+"px",
+    "drawBackgound": function() {},
+    "f": function(x) {},
+    "drawShape": function() {},
+  };
+
+  /* let winding_plot_config = {
+    "x_min": -3, "x_max": +3,
+    "y_min": -3, "y_max": +3,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "240px",
+    "height": "50%",
+    "padding": "5px 5px 10px 10px",
+    "position": nj.add(LEFT, DOWN),
+    "x": "0px", "y": parseInt(frame.config.height/2)+"px",
+    "f": function(freq) {
+      let cosfreqt = function(freq, t) { return 2+cos(freq*t); }
+      let xVal, yVal;
+      this.points = [];
+      for (let t=0.0; t<12; t+=0.05) {
+        xVal = this.getTheX(cos(t)*cosfreqt(freq, t));
+        yVal = -this.getTheY(sin(t)*cosfreqt(freq, t));
+        this.points.unshift(createVector(xVal, yVal)); 
+      }
+    }
+  };
+
+  let fourier_x_plot_config = {
+    "x_min": -1.5, "x_max": +10,
+    "y_min": -2, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "609px",
+    "height": "50%",
+    "padding": "5px 10px 10px 10px",
+    "position": nj.add(RIGHT, DOWN),
+    "x": "240px", "y": parseInt(frame.config.height/2)+"px",
+    "f": function(freq) {}
+  }; */
+
+  plots.push(new Plot(frame, signal_plot_config).init());
+  plots.push(new Plot(frame, spectrum1_plot_config).init());
+  plots.push(new Plot(frame, spectrum2_plot_config).init());
+  plots.push(new Plot(frame, spectrum3_plot_config).init());
+  plots.push(new Plot(frame, spectrum4_plot_config).init());
+  plots.push(new Plot(frame, spectrum5_plot_config).init());
+  //plots.push(new Plot(frame, winding_plot_config).init());
+  //plots.push(new Plot(frame, fourier_x_plot_config).init());
+  //console.log("plots.length = " + plots.length);
+
+  let plot = plots[0];
+
+  let f = function(t, T) {
+    let mod = t % T;
+    if (0 <= mod && mod < 1) return 1;
+    else return 0;
+  };
+
+  let x = [];
+
+  let xVal, yVal;
+  for (let t=0; t<12; t+=0.01) {
+
+    x.push(f(t, 4));
+
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(f(t, 4));
+    plot.points.unshift(createVector(xVal, yVal)); 
+  }
+
+  let forwardDct = function(rate, x) {
+    let y = [];
+    let N = x.length;
+    for (let k=0; k<rate; k++) {
+      let sum = 0.0;
+      for (let n=0; n<N; n++) {
+        sum += x[n]*cos((2*n+1)*k*PI/(2*N));
+      }
+      let alpha = k == 0 ? 1/sqrt(2) : 1;
+      y[k] = sqrt(2/N)*alpha*sum;
+    }
+    return y;
+  };
+
+  let inverseDct = function(y, N) {
+    let x = [];
+    //let rate = y.length;
+    for (let n=0; n<=N; n++) {
+      let sum = 0.0;
+      for (let k=0; k<y.length; k++) {
+        let alpha = k == 0 ? 1/sqrt(2) : 1;
+        sum += alpha*y[k]*cos((2*n+1)*k*PI/(2*N));
+      }
+      x[n] = sqrt(2/N)*sum;
+    }
+    return x;
+  }
+
+  console.log("" + x.length);
+
+  let rate = 100;
+  let y = forwardDct(rate, x);
+  let inversed = inverseDct(y, x.length-1);
+  //console.log("_x = " + _x);
+
+  plot = plots[1];
+  let i = 0;
+  for (let t=0; t<12; t+=0.01) {
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(inversed[i++]);
+    plot.points.unshift(createVector(xVal, yVal)); 
+  }
+
+  rate = 200;
+  y = forwardDct(rate, x);
+  inversed = inverseDct(y, x.length-1);
+  //console.log("_x = " + _x);
+
+  plot = plots[2];
+  i = 0;
+  for (let t=0; t<12; t+=0.01) {
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(inversed[i++]);
+    plot.points.unshift(createVector(xVal, yVal)); 
+  }
+
+  rate = 300;
+  y = forwardDct(x.length-1, x);
+  inversed = inverseDct(y, x.length-1);
+  //console.log("_x = " + _x);
+
+  plot = plots[3];
+  i = 0;
+  for (let t=0; t<12; t+=0.01) {
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(inversed[i++]);
+    plot.points.unshift(createVector(xVal, yVal)); 
+  }
+
+  /* rate = 4;
+  y = forwardDct(rate, plots[0].points);
+  x = inverseDct(rate, y);
+
+  plot = plots[4];
+  i = 0;
+  for (let t=0; t<=12; t+=0.01) {
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(x[i++]);
+    plot.points.unshift(createVector(xVal, yVal)); 
+  }
+
+  rate = 5;
+  y = forwardDct(rate, plots[0].points);
+  x = inverseDct(rate, y);
+
+  plot = plots[5];
+  i = 0;
+  for (let t=0; t<=12; t+=0.01) {
+    xVal = plot.getTheX(t);
+    yVal = plot.getTheY(x[i++]);
+    plot.points.unshift(createVector(xVal, yVal)); 
+  } */
+
+  /* //Forward DFT
+  X = [];
+  N = plots[0].points.length;
+  for (let k=0; k<5; k++) {
+    let re, im;
+    for (let n=0; n<N; n++) {
+      re += f[n] * cos(TWO_PI*k*n/N);
+      im -= f[n] * sin(TWO_PI*k*n/N);
+    }
+    X[k] = {"re": re, "im": im};
+  }
+
+  //Inverse DFT
+  for (let x=0; x<=12; x+=0.01) {
+    let re, im;
+    for (let k=0; k<1; k++) {
+      re += 1/N * X[k] * cos(TWO_PI*k*x/N);
+      im += 1/N * X[k] * sin(TWO_PI*k*x/N);
+    }
+    //xVal = plot.getTheX(x);
+    //yVal = plot.getTheY(f(x));
+    //plot.points.unshift(createVector(xVal, yVal)); 
+  } */
+}
+
+let freq = 0;
+
+function draw() {
+  //console.log("draw() is called...");
+
+  background(Color.DARK_GREY);
+
+  for (let i=0; i<plots.length; i++) {
+    let plot = plots[i];
+    push();
+    plot.translate();
+    plot.drawBackground();
+    plot.drawShape();
+    pop();
+  }
+
+  noLoop();
+
+  /* freq += 0.1;
+  if (freq > 4) {
+    console.log("end of drawing...");
+    noLoop();
+  } */
+
+}
+
+</script>
+
+</head>
+
+<body></body>
+
+</html>

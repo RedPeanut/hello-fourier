@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>fourier1.html</title>
+
+<script src="./lib/p5.js"></script>
+<script src="./lib/numjs.min.js"></script>
+
+<script src="./Constants.js"></script>
+<script src="./Frame.js"></script>
+<script src="./Plot1.js"></script>
+<script src="./Container.js"></script>
+
+<script type="text/javascript">
+
+//let canvas;
+
+/* let width = 400;
+let height = 400; 
+
+//let xMin = -3*Math.PI, xMax = 3*Math.PI;
+let xMin = -2, xMax = 2;
+let yMin = -2, yMax = 2;
+
+// Tic mark intervals
+let xTicInt = 1.0;
+let yTicInt = 1.0;
+
+// Tic mark lengths. If too small on x-axis, a default value is used later.
+let xTicLen = (yMax - yMin) / 50;
+let yTicLen = (xMax - xMin) / 50;
+
+let xCalcInc = 0.05;
+
+let xScale = width / (xMax - xMin);
+let yScale = height / (yMax - yMin);
+
+let xOrigin = parseInt((0 - xMin) * xScale);
+let yOrigin = parseInt((0 - yMin) * yScale);
+*/
+
+/* let DEFAULT_FRAME_WIDTH = LOW_QUALITY_CAMERA_CONFIG["frame_width"];
+let DEFAULT_FRAME_HEIGHT = LOW_QUALITY_CAMERA_CONFIG["frame_height"];
+let DEFAULT_FRAME_RATE = LOW_QUALITY_CAMERA_CONFIG["frame_rate"];
+
+let width = DEFAULT_FRAME_WIDTH;
+let height = DEFAULT_FRAME_HEIGHT; */
+
+let objects = [], plots = [];
+let container;
+
+function setup() {
+  console.log("setup() is called...");
+
+  let frame = new Frame({
+    /* // medium size frame
+    "width": 1280,
+    "height": 720, */
+    // small size frame
+    "width": 854,
+    "height": 480,
+    "rate": 10,
+  });
+
+  createCanvas(frame.config.width, frame.config.height);
+  frameRate(frame.config.rate);
+
+  let signal_plot_config = {
+    "x_min": -1.5, "x_max": +5,
+    "y_min": -0.5, "y_max": +2.5,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "100%",
+    "height": "50%",
+    "padding": "10px 10px 5px 10px",
+    "position": UP,
+    "x": "0px", "y": "0px",
+    "drawBackgound": function() {},
+    "f": function(signalFunction, signalFrequency, windingFrequency) {
+      let xVal, yVal;
+      this.points = [];
+      for (let t=0.0; t<4.5; t+=0.01) {
+        xVal = this.getTheX(t);
+        yVal = this.getTheY(signalFunction(signalFrequency, t));
+        this.points.unshift(createVector(xVal, yVal));
+      }
+    }
+  };
+
+  let winding_plot_config = {
+    "x_min": -3, "x_max": +3,
+    "y_min": -3, "y_max": +3,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "240px",
+    "height": "50%",
+    "padding": "5px 5px 10px 10px",
+    "position": nj.add(LEFT, DOWN),
+    "x": "0px", "y": parseInt(frame.config.height/2)+"px",
+    "f": function(signalFunction, signalFrequency, windingFrequency) {
+      let xVal, yVal;
+      this.points = [];
+      for (let t=0.0; t<4.5; t+=0.01) {
+        xVal = this.getTheX(cos(windingFrequency*t)*signalFunction(signalFrequency, t));
+        yVal = -this.getTheY(sin(windingFrequency*t)*signalFunction(signalFrequency, t));
+        this.points.unshift(createVector(xVal, yVal)); 
+      }
+    }
+  };
+
+  let fourier_x_plot_config = {
+    "x_min": -1.5, "x_max": +10,
+    "y_min": -2, "y_max": +2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "609px",
+    "height": "50%",
+    "padding": "5px 10px 10px 10px",
+    "position": nj.add(RIGHT, DOWN),
+    "x": "240px", "y": parseInt(frame.config.height/2)+"px",
+    "f": function(freq) {
+      
+    }
+  };
+
+  plots.push(new Plot(frame, signal_plot_config).init());
+  plots.push(new Plot(frame, winding_plot_config).init());
+  plots.push(new Plot(frame, fourier_x_plot_config).init());
+  //console.log("plots.length = " + plots.length);
+}
+
+let windingFrequency = 0; // cycles per second
+
+function draw() {
+  //console.log("draw() is called...");
+
+  background(Color.DARK_GREY);
+
+  /* let cos2t = function(t) { return cos(2*t); }
+  let cos3t = function(t) { return cos(3*t); }
+  let f = function(t) { return cos(2*t)+cos(3*t); }
+
+  let f1 = function(t) { return cos(t); }
+  let f2 = function(t) { return cos(t)+cos(2*t); }
+  let f3 = function(t) { return cos(t)+cos(2*t)+cos(3*t); } */
+  let signalFunction = function(f, t) { return 1+cos(f*t); }
+  let signalFrequency = 3*TWO_PI; // bits per second
+
+  for (let i=0; i<plots.length; i++) {
+    let plot = plots[i];
+    push();
+    plot.translate();
+    plot.drawBackground();
+    plot.f(signalFunction, signalFrequency, windingFrequency);
+    plot.drawShape();
+    pop();
+  }
+
+  windingFrequency += 0.05;
+  if (windingFrequency > 3*2*PI) {
+    console.log("end of drawing...");
+    noLoop();
+  }
+
+}
+
+</script>
+
+</head>
+
+<body></body>
+
+</html>

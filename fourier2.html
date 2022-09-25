@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>fourier2.html</title>
+
+<script src="./lib/p5.js"></script>
+<script src="./lib/numjs.min.js"></script>
+
+<script src="./Constants.js"></script>
+<script src="./Frame.js"></script>
+<script src="./Plot2.js"></script>
+<script src="./Container.js"></script>
+
+<script type="text/javascript">
+
+function preload() {}
+
+let frame = new Frame().init({
+  /* // medium size frame
+  "width": 1280,
+  "height": 720, */
+  // small size frame
+  "width": 800,
+  "height": 480,
+  "rate": 24,
+});
+
+let plots = [];
+
+//let windingFrequency = 0; // cycles per second
+let bitsPerSecond = 3;
+//let cyclesPerSecond = 0;
+
+let signalFunction = function(f, t) { return 1+cos(f*t); }
+let signalFrequency = bitsPerSecond * TWO_PI;
+
+function setup() {
+  console.log("setup() is called...");
+
+  createCanvas(frame.config.width, frame.config.height);
+  frameRate(frame.config.rate);
+
+  let signal_plot_config = {
+    "x_min": -0.2, "x_max": +5,
+    "y_min": -0.2, "y_max": +2.2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": "100%",
+    "height": "20%",
+    "padding": "10px 10px 5px 10px",
+    "position": UP,
+    "x": "0px", "y": "0px",
+    "drawBackgound": function() {},
+    "setup": function(param) {
+
+      let signalFunction = param.signalFunction;
+      let signalFrequency = param.signalFrequency;
+      let windingFrequency = param.windingFrequency;
+
+      let xVal, yVal;
+      this.points = [];
+      for (let t=0.0; t<4.5; t+=0.01) {
+        xVal = this.getTheX(t);
+        yVal = this.getTheY(signalFunction(signalFrequency, t));
+        this.points.push(createVector(xVal, yVal));
+      }
+    },
+    "f": function(param) {
+    },
+    "drawShape": function(param) {
+
+      let cyclesPerSecond = param.cyclesPerSecond;
+
+      //draw 
+      if (cyclesPerSecond != 0) {
+        stroke(Color.WHITE);
+        for (t=0; t<4.5; t+=1/cyclesPerSecond) {
+          if (t == 0) continue; /* not draw in point x */
+          let even = 0;
+          for (y=0; y<2; y+=0.1) {
+            if (even % 2 == 0) {
+              let x1, x2, y1, y2;
+              x1 = x2 = this.getTheX(t);
+              y1 = this.getTheY(y); y2 = this.getTheY(y+0.05);
+              line(x1, y1, x2, y2);
+            }
+            even++;
+          }
+        }
+      }
+
+      stroke(Color.YELLOW_C);
+      beginShape();
+      noFill();
+      for (let i=0; i<this.points.length; i++) {
+        vertex(this.points[i].x, this.points[i].y);
+      }
+      endShape();
+    }
+  };
+
+  let winding_plot_config = {
+    "x_min": -2.2, "x_max": +2.2,
+    "y_min": -2.2, "y_max": +2.2,
+    "x_tic_int": 1.0,
+    "y_tic_int": 1.0,
+
+    "width": parseInt(frame.config.height*0.5)+"px",
+    "height": "50%",
+    "padding": "5px 5px 10px 10px",
+    "position": nj.add(LEFT, DOWN),
+    "x": "0px",
+    "y": parseInt(frame.config.height*(1-0.5))+"px",
+    "setup": function() {
+      this.massXValPerFreq = [];
+      this.massYValPerFreq = [];
+    },
+    "drawBackground": function(param) {
+      
+      //draw grid
+      stroke(Color.BLUE_C);
+      this.drawXGrid();
+      this.drawYGrid();
+
+      stroke(Color.LIGHT_GREY);
+      this.drawAxes();
+      this.drawXTics();
+      this.drawYTics();
+
+      //draw circle with dot
+      let x1 = 1.0, y1 = 0.0, x2 = 1.0, y2 = 0.0;
+      let even = 0;
+      for (let w=0; w<TWO_PI; w+=0.1) {
+        x2 = this.getTheX(cos(w));
+        y2 = this.getTheY(sin(w));
+        if (even % 2 == 0) {
+          line(x1, y1, x2, y2);
+        }
+        x1 = x2; y1 = y2;
+        even++;
+      }
+    },
+    "f": function(param) {
+
+      let signalFunction = param.signalFunction;
+      let signalFrequency = param.signalFrequency;
+      let windingFrequency = param.windingFrequency;
+
+      let x = [], y = [], dt = 0.0001;
+      for (let t=0.0; t<4.5; t+=dt) {
+        x.push(cos(windingFrequency*t)*signalFunction(signalFrequency, t));
+        y.push(-sin(windingFrequency*t)*signalFunction(signalFrequency, t));
+      }
+      
+      let xVal, yVal;
+      this.points = [];
+      for (let i=0; i<x.length; i++) {
+        xVal = this.getTheX(x[i]);
+        yVal = this.getTheY(y[i]);
+        this.points.push(createVector(xVal, yVal)); 
+      }
+
+      let sum = {x:0, y:0};
+      for (let i=0; i<x.length; i++) {
+        sum.x += x[i]; sum.y += y[i];
+      }
+      //console.log("sum = ["+sum.x+","+sum.y+"]");
+
+      let massVal = {x:0, y:0};
+      //let alpha = windingFrequency == 0 ? 2 : 1;
+      massVal.x = sum.x/x.length*2;
+      massVal.y = sum.y/x.length*2;
+
+      this.massXValPerFreq.push(createVector(windingFrequency, massVal.x));
+      this.massYValPerFreq.push(createVector(windingFrequency, massVal.y));
+
+      xVal = this.getTheX(massVal.x);
+      yVal = this.getTheY(massVal.y);
+      this.massPoint = createVector(xVal, yVal)
+    },
+    "drawShape": function(param) {
+      stroke(Color.YELLOW_C);
+      beginShape();
+      noFill();
+      for (let i=0; i<this.points.length; i++) {
+        vertex(this.points[i].x, this.points[i].y);
+      }
+      endShape();
+
+      stroke(Color.RED_C);
+      strokeWeight(5);
+      point(this.massPoint.x, this.massPoint.y);
+
+    }
+  };
+
+  let fourier_x_plot_config = {
+    "x_min": -1.5, "x_max": +5*TWO_PI,
+    "y_min": -2.2, "y_max": +2.2,
+    "x_tic_int": PI,
+    "y_tic_int": 1.0,
+
+    "width": parseInt(frame.config.width-frame.config.height*0.5)+"px",
+    "height": "50%",
+    "padding": "5px 10px 10px 10px",
+    "position": nj.add(RIGHT, DOWN),
+    "x": parseInt(frame.config.height*0.5)+"px",
+    "y": parseInt(frame.config.height*(1-0.5))+"px",
+    "f": function(param) {
+    },
+    "drawShape": function(param) {
+      //let windingFrequency = param.windingFrequency;
+      let massXValPerFreq = param.massXValPerFreq;
+
+      stroke(Color.RED_C);
+      beginShape();
+      noFill();
+      let windingFrequency, massXVal;
+      for (let i=0; i<massXValPerFreq.length; i++) {
+        windingFrequency = this.getTheX(massXValPerFreq[i].x);
+        massXVal = this.getTheY(massXValPerFreq[i].y);
+        vertex(windingFrequency, massXVal);
+      }
+      endShape();
+
+      stroke(Color.WHITE);
+      strokeWeight(5);
+      let x,y;
+      x = this.getTheX(massXValPerFreq[massXValPerFreq.length-1].x);
+      y = this.getTheY(massXValPerFreq[massXValPerFreq.length-1].y);
+      point(x, y);
+
+    }
+  };
+
+  plots.push(new Plot(frame, signal_plot_config).init());
+  plots.push(new Plot(frame, winding_plot_config).init());
+  plots.push(new Plot(frame, fourier_x_plot_config).init());
+  //console.log("plots.length = " + plots.length);
+  for (let i=0; i<plots.length; i++) {
+    let plot = plots[i];
+    if (plot.setup != null)
+      plot.setup({
+      "signalFunction": signalFunction,
+      "signalFrequency": signalFrequency,
+      "windingFrequency": null,
+    });
+  }
+}
+
+console.log("frame.config.rate = " + frame.config.rate);
+let cyclesPerSecond = 0;
+
+function draw() {
+  //console.log("draw() is called...");
+
+  background(Color.DARKER_GREY);
+  
+  let windingFrequency = cyclesPerSecond * TWO_PI;
+  for (let i=0; i<plots.length; i++) {
+    let plot = plots[i];
+    push();
+    plot.translate();
+    plot.drawBackground();
+    plot.f({
+      "signalFunction": signalFunction,
+      "signalFrequency": signalFrequency,
+      "windingFrequency": windingFrequency,
+    });
+    plot.drawShape({
+      "cyclesPerSecond": cyclesPerSecond,
+      //"windingFrequency": windingFrequency,
+      "massXValPerFreq": plots[1].massXValPerFreq,
+      "massYValPerFreq": plots[1].massYValPerFreq,
+    });
+    pop();
+  }
+
+  cyclesPerSecond += 0.01;
+  //noLoop();
+
+  if (cyclesPerSecond > 3) {
+    console.log("end of drawing...");
+    noLoop();
+  }
+
+}
+
+</script>
+
+</head>
+
+<body></body>
+
+</html>

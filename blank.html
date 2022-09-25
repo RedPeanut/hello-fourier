@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blank.html</title>
+
+<script src="./lib/p5.js"></script>
+<script src="./lib/numjs.min.js"></script>
+
+<script src="./Constants.js"></script>
+<!-- <script src="./Frame.js"></script>
+<script src="./Plot.js"></script>
+<script src="./Container.js"></script> -->
+
+<script type="text/javascript">
+
+function setup() {
+  console.log("setup() is called...");
+  createCanvas(400, 400);
+}
+
+function draw() {
+  //console.log("draw() is called...");
+  background(Color.DARK_GREY);
+  translate(100,100);
+  noStroke();
+  fill(Color.YELLOW_C);
+  circle(0, 0, 1);
+  noLoop();
+}
+
+</script>
+
+</head>
+
+<body></body>
+
+</html>
